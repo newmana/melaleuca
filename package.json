@@ -35,6 +35,6 @@
     "coverage": "yarn run elm-coverage",
     "full": "yarn run elm-test && yarn run elm-review",
     "repl": "yarn run elm repl",
-    "run": "yarn run parcel --no-cache src/index.html"
+    "run": "PARCEL_ELM_NO_DEBUG=1 yarn run parcel --no-cache src/index.html"
   }
 }

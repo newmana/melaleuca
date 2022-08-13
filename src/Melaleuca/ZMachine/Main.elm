@@ -18,14 +18,10 @@ import Task
 
 main : Platform.Program {} Model Msg
 main =
-    let
-        m =
-            Memory.init 64
-    in
     Browser.element
         { init = always init
-        , update = update m
-        , view = view m
+        , update = update
+        , view = view
         , subscriptions = always Sub.none
         }
 
@@ -33,12 +29,13 @@ main =
 type alias Model =
     { counter : Int
     , file : Bytes.Bytes
+    , memory : Memory.Memory
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { counter = 0, file = BytesEncode.encode (BytesEncode.unsignedInt8 0) }, Cmd.none )
+    ( { counter = 0, file = BytesEncode.encode (BytesEncode.unsignedInt8 0), memory = Memory.init 0 }, Cmd.none )
 
 
 type Msg
@@ -49,8 +46,8 @@ type Msg
     | FileRead Bytes.Bytes
 
 
-update : Memory.Memory -> Msg -> Model -> ( Model, Cmd Msg )
-update m msg model =
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         Increment ->
             ( { model | counter = model.counter + 1 }, Cmd.none )
@@ -65,17 +62,34 @@ update m msg model =
             ( model, Task.perform FileRead (File.toBytes file) )
 
         FileRead content ->
-            ( { model | file = content }, Cmd.none )
+            let
+                listStep : BytesDecode.Decoder a -> ( Int, Array.Array a ) -> BytesDecode.Decoder (BytesDecode.Step ( Int, Array.Array a ) (Array.Array a))
+                listStep decoder ( n, arr ) =
+                    if n <= 0 then
+                        BytesDecode.succeed (BytesDecode.Done arr)
+
+                    else
+                        BytesDecode.map (\a -> BytesDecode.Loop ( n - 1, Array.append arr (Array.fromList [ a ]) )) decoder
+
+                x =
+                    BytesDecode.loop ( Bytes.width content, Array.empty ) (listStep BytesDecode.unsignedInt8)
+
+                y =
+                    BytesDecode.decode x content |> Maybe.withDefault Array.empty
+
+                newMemory =
+                    { data = y }
+            in
+            ( { model | file = content, memory = newMemory }, Cmd.none )
 
 
-view : Memory.Memory -> Model -> Html.Html Msg
-view memory model =
+view : Model -> Html.Html Msg
+view model =
     Html.div []
         [ Html.div []
             [ Html.button [ HtmlEvents.onClick Decrement ] [ Html.text "-" ]
             , Html.div [] [ Html.text (String.fromInt model.counter) ]
-            , Html.div [] [ Html.text (String.fromInt (Array.get model.counter memory.data |> Maybe.withDefault 42)) ]
-            , Html.div [] [ Html.text (String.fromInt (Array.length memory.data)) ]
+            , Html.div [] [ Html.text (String.fromInt (Array.length model.memory.data)) ]
             , Html.button [ HtmlEvents.onClick Increment ] [ Html.text "+" ]
             ]
         , Html.div
