@@ -12,6 +12,7 @@ import Html.Attributes as HtmlAttributes
 import Html.Events as HtmlEvents
 import Melaleuca.ZMachine.Hardware.CPU.OpCodes as OpCodes
 import Melaleuca.ZMachine.Hardware.Memory as Memory
+import Melaleuca.ZMachine.Software.Story.Types as StoryTypes
 import Task
 
 
@@ -80,6 +81,6 @@ view memory model =
         , Html.div
             []
             [ Html.button [ HtmlEvents.onClick OpenFileClicked ] [ Html.text "Open file" ]
-            , Html.p [] [ Html.text (BytesDecode.decode OpCodes.machineDecoder model.file |> Maybe.map OpCodes.machineToString |> Maybe.withDefault "Boo") ]
+            , Html.p [] [ Html.text (BytesDecode.decode StoryTypes.storyDecoder model.file |> Maybe.map StoryTypes.storyToString |> Maybe.withDefault "Boo") ]
             ]
         ]
