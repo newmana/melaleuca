@@ -1,4 +1,4 @@
-module Melaleuca.ZMachine.Software.Story.Types.Flags1 exposing (Flags2(..), flags2ToString)
+module Melaleuca.ZMachine.Software.Story.Types.Flags2 exposing (Flags2(..), allVersionsFlags2Decoder, flags2ToString)
 
 import Bitwise as Bitwise
 import Bytes.Decode as BytesDecode
@@ -24,7 +24,7 @@ type alias AllFlags2 =
     }
 
 
-flags2ToString : Flags1 -> String
+flags2ToString : Flags2 -> String
 flags2ToString f =
     case f of
         NoFlags2 ->
